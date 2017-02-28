@@ -391,7 +391,7 @@ func DatalinkValueToDescription(dlt int) string {
 	return ""
 }
 
-func getNetworkInterfaceInfo(ifaddrs *C.struct_ifaddrs, ipaddr IFAddress) (string, uint) {
+func getNetworkInterfaceInfo(ifaddrs *C.struct_ifaddrs, ipaddr IFAddress) (string, uint, net.IPMask) {
 	for fi := ifaddrs; fi != nil; fi = fi.ifa_next {
 		if (fi.ifa_addr == nil) || (C.int(fi.ifa_flags)&syscall.IFF_UP != syscall.IFF_UP) {
 			continue
@@ -404,11 +404,15 @@ func getNetworkInterfaceInfo(ifaddrs *C.struct_ifaddrs, ipaddr IFAddress) (strin
 				dlog.Errf("sockadd to IP %v err %v", sa_in, err)
 			}
 			if ifaddr.IP.Equal(ipaddr.IP) == true {
-				return C.GoString(fi.ifa_name), uint(fi.ifa_flags)
+				if ifaddr.Netmask, _, err = sockaddrToIP((*syscall.RawSockaddr)(unsafe.Pointer(fi.ifa_netmask))); err != nil {
+					sa_in := (*C.struct_sockaddr_in)(unsafe.Pointer(fi.ifa_netmask))
+					dlog.Errf("sockadd to IP %v err %v", sa_in, err)
+				}
+				return C.GoString(fi.ifa_name), uint(fi.ifa_flags), ifaddr.Netmask
 			}
 		}
 	}
-	return "", 0
+	return "", 0, []byte{0xff, 0xff, 0xff, 0}
 }
 
 func FindAllDevs() (ifs []Interface, err error) {
@@ -437,36 +441,23 @@ func FindAllDevs() (ifs []Interface, err error) {
 		var ipv4, ipv6 int
 		var iface Interface
 		iface.Addresses, ipv4, ipv6 = findAllAddresses(dev.addresses)
-		if (ipv4 > 1 || ipv6 > 1) && getrc == 0 {
-			names := make(map[string]uint)
+		dlog.Infof("Found IF %v ipv4 %v ipv6 %v", C.GoString(dev.name), ipv4, ipv6)
+		if getrc == 0 {
 			for k, ipaddr := range iface.Addresses {
-				iface.Addresses[k].IfName, iface.Addresses[k].Flags = getNetworkInterfaceInfo(ifaddrs, ipaddr)
-				if names[iface.Addresses[k].IfName] == 0 {
-					names[iface.Addresses[k].IfName] = iface.Addresses[k].Flags
-				}
-			}
-			for name, _ := range names {
-				var iface1 Interface
-				ifaceAddr := iface.Addresses
-				iface1.Addresses = make([]IFAddress, 0, 1)
-				iface1.Description = C.GoString(dev.description)
-				for _, ipaddr := range ifaceAddr {
-					if strings.Compare(name, ipaddr.IfName) == 0 {
-						iface1.Addresses = append(iface1.Addresses, ipaddr)
-						iface1.Flags = ipaddr.Flags
-						iface1.Name = name
-					}
-				}
-				ifs = append(ifs, iface1)
-				j++
+				iface.Addresses[k].IfName, iface.Addresses[k].Flags, iface.Addresses[k].Netmask = getNetworkInterfaceInfo(ifaddrs, ipaddr)
 			}
 		} else {
-			iface.Description = C.GoString(dev.description)
-			iface.Flags = uint(dev.flags)
-			iface.Name = C.GoString(dev.name)
-			ifs = append(ifs, iface)
-			j++
+			for k, ipaddr := range iface.Addresses {
+				iface.Addresses[k].IfName = C.GoString(dev.name)
+				iface.Addresses[k].Flags = uint(dev.flags)
+				iface.Addresses[k].Netmask = ipaddr.Netmask
+			}
 		}
+		iface.Description = C.GoString(dev.description)
+		iface.Flags = uint(dev.flags)
+		iface.Name = C.GoString(dev.name)
+		ifs = append(ifs, iface)
+		j++
 		// TODO: add more elements
 	}
 	return
