@@ -439,7 +439,7 @@ func FindAllDevs() (ifs []Interface, err error) {
 		defer C.freeifaddrs(ifaddrs)
 	}
 	for j := uint32(0); dev != nil; dev = (*C.pcap_if_t)(dev.next) {
-		//var ipv4, ipv6 int
+		var ipv4, ipv6 int
 		var iface Interface
 		iface.Addresses, ipv4, ipv6 = findAllAddresses(dev.addresses)
 		if getrc == 0 {
@@ -453,7 +453,7 @@ func FindAllDevs() (ifs []Interface, err error) {
 				iface.Addresses[k].Netmask = ipaddr.Netmask
 			}
 		}
-		//dlog.Debugf("Found IF %v ipv4 %v ipv6 %v ifaddr %v", C.GoString(dev.name), ipv4, ipv6, iface.Addresses)
+		dlog.Debugf("Found IF %v ipv4 %v ipv6 %v ifaddr %v", C.GoString(dev.name), ipv4, ipv6, iface.Addresses)
 		iface.Description = C.GoString(dev.description)
 		iface.Flags = uint(dev.flags)
 		iface.Name = C.GoString(dev.name)
