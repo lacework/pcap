@@ -128,6 +128,7 @@ type Interface struct {
 	Description string
 	Addresses   []IFAddress
 	Flags       uint
+	Macstr      string
 	// TODO: add more elements
 }
 
@@ -457,6 +458,7 @@ func FindAllDevs() (ifs []Interface, err error) {
 		iface.Description = C.GoString(dev.description)
 		iface.Flags = uint(dev.flags)
 		iface.Name = C.GoString(dev.name)
+		iface.Macstr = GetArp(iface.Name)
 		ifs = append(ifs, iface)
 		j++
 		// TODO: add more elements
