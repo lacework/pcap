@@ -109,6 +109,7 @@ type Pcap struct {
 	used    int
 	seq     uint32
 	hdrsize int
+	IsRaw   bool
 }
 
 type PcapDumper struct {
@@ -242,6 +243,7 @@ func OpenLive(device string, snaplen int32, promisc bool, timeout_ms int32) (han
 	} else {
 		handle = h
 		h.initHdrsData()
+		h.FindRawDataLinks()
 	}
 	C.free(unsafe.Pointer(buf))
 	return
@@ -265,6 +267,32 @@ func OpenOffline(file string) (handle *Pcap, err error) {
 		h.initHdrsData()
 	}
 	C.free(unsafe.Pointer(buf))
+	return
+}
+
+func (p *Pcap) FindRawDataLinks() {
+	var dltbuf *C.int
+
+	p.IsRaw = false
+	n := int(C.pcap_list_datalinks(p.cptr, &dltbuf))
+	if -1 == n {
+		dlog.Infof("list datalinks Read Error")
+		return
+	}
+
+	defer C.pcap_free_datalinks(dltbuf)
+
+	dltArray := (*[100]C.int)(unsafe.Pointer(dltbuf))
+
+	for i := 0; i < n; i++ {
+		expr1 := C.pcap_datalink_val_to_name((*dltArray)[i])
+		expr2 := C.pcap_datalink_val_to_description((*dltArray)[i])
+		if i == 0 && C.GoString(expr2) == "Raw IP" && C.GoString(expr1) == "RAW" {
+			dlog.Infof("datalinks type Raw IP found")
+			p.IsRaw = true
+			break
+		}
+	}
 	return
 }
 

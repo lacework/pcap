@@ -53,12 +53,17 @@ func (p *Packet) setHeader(header interface{}) error {
 }
 
 // Decode decodes the headers of a Packet.
-func (p *Packet) Decode() {
+func (p *Packet) Decode(isRaw bool) {
 
-	p.Type = int(binary.BigEndian.Uint16(p.Data[12:14]))
-	p.DestMac = decodemac(p.Data[0:6])
-	p.SrcMac = decodemac(p.Data[6:12])
-	p.Payload = p.Data[14:]
+	if isRaw == false {
+		p.Type = int(binary.BigEndian.Uint16(p.Data[12:14]))
+		p.DestMac = decodemac(p.Data[0:6])
+		p.SrcMac = decodemac(p.Data[6:12])
+		p.Payload = p.Data[14:]
+	} else {
+		p.Type = TYPE_IP
+		p.Payload = p.Data[0:]
+	}
 
 	switch p.Type {
 	case TYPE_IP:
