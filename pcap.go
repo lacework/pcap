@@ -341,6 +341,10 @@ func (p *Pcap) getNextPkt(pkt *Packet) {
 	pkt.Caplen = uint32(pkthdr.caplen)
 	pkt.Len = uint32(pkthdr.len)
 
+	pkt.LinkType = 1 //LINKTYPE_ETHERNET
+	if p.IsRaw == true {
+		pkt.LinkType = 101 //LINKTYPE_RAW
+	}
 	if pkt.Caplen > C.MAX_PKT_CAPLEN {
 		pkt.Partial = pkt.Caplen - C.MAX_PKT_CAPLEN
 		pkt.Caplen = C.MAX_PKT_CAPLEN
