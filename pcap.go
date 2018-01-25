@@ -288,7 +288,7 @@ func (p *Pcap) FindRawDataLinks() {
 		expr1 := C.pcap_datalink_val_to_name((*dltArray)[i])
 		expr2 := C.pcap_datalink_val_to_description((*dltArray)[i])
 		if i == 0 && C.GoString(expr2) == "Raw IP" && C.GoString(expr1) == "RAW" {
-			dlog.Infof("datalinks type Raw IP found")
+			dlog.Debugf("datalinks type Raw IP found")
 			p.IsRaw = true
 			break
 		}
