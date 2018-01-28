@@ -24,12 +24,22 @@ func main() {
 
 	var h *pcap.Pcap
 
-	ifs, err := pcap.FindAllDevs()
-	if len(ifs) == 0 {
+	devs, err := pcap.FindAllDevs()
+	if len(devs) == 0 {
 		fmt.Printf("Warning: no devices found : %s\n", err)
 	} else {
-		for i := 0; i < len(ifs); i++ {
-			fmt.Printf("dev %d: %s (%s)\n", i+1, ifs[i].Name, ifs[i].Description)
+		for idx := range devs {
+			fmt.Printf("Monitoring Interface %v (%v) flags %v\n", devs[idx].Name, devs[idx].Description, devs[idx].Flags)
+			for _, addr := range devs[idx].Addresses {
+				if addr.IP.To4() != nil {
+					fmt.Printf("IPV4 Interface addr: %+v\n", addr)
+				} else if addr.IP.To16() != nil {
+					fmt.Printf("IPV6 Interface addr: %+v\n", addr)
+				} else {
+					fmt.Printf("Unknown IP addr %v\n", addr)
+					break
+				}
+			}
 		}
 	}
 
@@ -39,6 +49,7 @@ func main() {
 			fmt.Printf("OpenLive(%s) failed: %s\n", *device, err)
 			return
 		}
+		fmt.Printf("pcap device opened %s, properties %+v\n", *device, h)
 	} else if *file != "" {
 		h, err = pcap.OpenOffline(*file)
 		if h == nil {
@@ -69,9 +80,9 @@ func main() {
 				fmt.Printf("\n")
 			}
 			if 32 <= pkt.Data[i] && pkt.Data[i] <= 126 {
-				fmt.Printf("%c", pkt.Data[i])
+				fmt.Printf("%x-%c ", pkt.Data[i], pkt.Data[i])
 			} else {
-				fmt.Printf(".")
+				fmt.Printf("%x-. ", pkt.Data[i])
 			}
 		}
 		fmt.Printf("\n\n")
