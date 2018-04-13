@@ -26,9 +26,10 @@ type Packet struct {
 
 	Data []byte // packet data
 
-	Type    int // protocol type, see LINKTYPE_*
-	DestMac uint64
-	SrcMac  uint64
+	Type     int // protocol type, see LINKTYPE_*
+	LinkType int // [enhnacement] handle LINKTYPE_ETHERNET or LINKTYPE_RAW
+	DestMac  uint64
+	SrcMac   uint64
 
 	Headers     [4]interface{} // decoded headers, in order
 	Headers_cnt int
@@ -52,13 +53,29 @@ func (p *Packet) setHeader(header interface{}) error {
 	return nil
 }
 
+// only handle LINKTYPE_ETHER AND LINKTYPE_RAW (IPv4 and IPv6)
+func (p *Packet) IsRaw() bool {
+	if p.LinkType == LINKTYPE_RAW {
+		return true
+	}
+	return false
+}
+
 // Decode decodes the headers of a Packet.
 func (p *Packet) Decode() {
 
-	p.Type = int(binary.BigEndian.Uint16(p.Data[12:14]))
-	p.DestMac = decodemac(p.Data[0:6])
-	p.SrcMac = decodemac(p.Data[6:12])
-	p.Payload = p.Data[14:]
+	if p.IsRaw() == false {
+		p.Type = int(binary.BigEndian.Uint16(p.Data[12:14]))
+		p.DestMac = decodemac(p.Data[0:6])
+		p.SrcMac = decodemac(p.Data[6:12])
+		p.Payload = p.Data[14:]
+	} else {
+		p.Type = TYPE_IP
+		if p.Data[0]&0xf0 == 6 {
+			p.Type = TYPE_IP6
+		}
+		p.Payload = p.Data[0:]
+	}
 
 	switch p.Type {
 	case TYPE_IP:

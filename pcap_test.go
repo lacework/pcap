@@ -3,7 +3,7 @@ package pcap
 import (
 	"fmt"
 	"net"
-//	"os"
+	//	"os"
 	"testing"
 	"time"
 )
@@ -35,7 +35,7 @@ func testPcapHandle(t *testing.T, newHandle pcapNewHandleFunc) {
 
 	pktsRecvd := 0
 	for pkt := h.Next(); pkt != nil; pkt = h.Next() {
-		pkt.Decode()
+		pkt.Decode(h.IsRaw)
 		t.Logf("Packet:%s dataLen:%d", pkt, len(pkt.Payload))
 		pktsRecvd += 1
 	}
