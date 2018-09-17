@@ -63,7 +63,6 @@ func (p *Packet) IsRaw() bool {
 
 // Decode decodes the headers of a Packet.
 func (p *Packet) Decode() {
-
 	if p.IsRaw() == false {
 		p.Type = int(binary.BigEndian.Uint16(p.Data[12:14]))
 		p.DestMac = decodemac(p.Data[0:6])
@@ -83,7 +82,7 @@ func (p *Packet) Decode() {
 	case TYPE_IP6:
 		p.decodeIp6(0)
 	case TYPE_ARP:
-		p.decodeArp()
+		//p.decodeArp()
 	}
 }
 
@@ -158,6 +157,7 @@ func (p *Packet) decodeIp(recur int) {
 		return
 	}
 	if recur > 3 {
+		dlog.Infof("more than %v level of IPnIP encapsulation %+v", recur, p)
 		return
 	}
 	pkt := p.Payload
@@ -189,7 +189,6 @@ func (p *Packet) decodeIp(recur int) {
 	}
 	p.Payload = pkt[pIhl:pEnd]
 	p.setHeader(ip)
-
 	switch ip.Protocol {
 	case IP_TCP:
 		p.decodeTcp()
@@ -266,6 +265,10 @@ func (p *Packet) decodeIp6(recur int) {
 	if len(p.Payload) < 40 {
 		return
 	}
+	if recur > 3 {
+		dlog.Infof("more than %v level of IP6nIP encapsulation %+v", recur, p)
+		return
+	}
 	pkt := p.Payload
 	if p.ip6hdr == nil {
 		p.ip6hdr = new(Ip6hdr)
@@ -291,6 +294,6 @@ func (p *Packet) decodeIp6(recur int) {
 	case IP_ICMP:
 		p.decodeIcmp()
 	case IP_INIP:
-		p.decodeIp(recur + 1)
+		p.decodeIp6(recur + 1)
 	}
 }
