@@ -68,6 +68,16 @@ func (p *Packet) Decode() {
 		p.DestMac = decodemac(p.Data[0:6])
 		p.SrcMac = decodemac(p.Data[6:12])
 		p.Payload = p.Data[14:]
+		switch p.Type {
+		case 0x8100:
+			//VLAN tag skip 802.1Q tag
+			p.Type = int(binary.BigEndian.Uint16(p.Data[16:18]))
+			p.Payload = p.Data[18:]
+		case 0x88A8:
+			//VLAN tag skip 802.1ad double tag
+			p.Type = int(binary.BigEndian.Uint16(p.Data[20:22]))
+			p.Payload = p.Data[22:]
+		}
 	} else {
 		p.Type = TYPE_IP
 		if p.Data[0]&0xf0 == 6 {
