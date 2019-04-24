@@ -2,7 +2,7 @@
 package pcap
 
 /*
-#cgo LDFLAGS: -Wl,-Bstatic -lpcap -Wl,-Bdynamic,--wrap=memcpy
+#cgo LDFLAGS: -Wl,-Bstatic -lpcap -Wl,"-Bdynamic,--wrap=memcpy"
 #include <stdlib.h>
 #include <pcap.h>
 #include <string.h>
