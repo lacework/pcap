@@ -2,7 +2,7 @@
 package pcap
 
 /*
-#cgo LDFLAGS: -Wl,-Bstatic -lpcap -Wl,"-Bdynamic,--wrap=memcpy"
+#cgo LDFLAGS: -Wl,-Bstatic -lpcap -Wl,-Bdynamic,--wrap=memcpy
 #include <stdlib.h>
 #include <pcap.h>
 #include <string.h>
@@ -92,14 +92,13 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/lacework/agent/datacollector/dlog"
 	"io/ioutil"
 	"net"
 	"strings"
 	"syscall"
 	"time"
 	"unsafe"
-
-	"github.com/lacework/agent/datacollector/dlog"
 )
 
 type Pcap struct {
