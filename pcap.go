@@ -2,7 +2,7 @@
 package pcap
 
 /*
-#cgo LDFLAGS: -Wl,-Bstatic -lpcap -Wl,"-Bdynamic,--wrap=memcpy"
+#cgo LDFLAGS: -Wl,-Bstatic -lpcap -Wl,-Bdynamic,--wrap=memcpy
 #include <stdlib.h>
 #include <pcap.h>
 #include <string.h>
@@ -358,7 +358,7 @@ func (p *Pcap) getNextPkt(pkt *Packet) {
 }
 
 func (p *Pcap) Getstats() (stat *Stat, err error) {
-	var cstats _Ctype_struct_pcap_stat
+	var cstats C.struct_pcap_stat
 	if -1 == C.pcap_stats(p.cptr, &cstats) {
 		return nil, p.Geterror()
 	}
@@ -371,7 +371,7 @@ func (p *Pcap) Getstats() (stat *Stat, err error) {
 }
 
 func (p *Pcap) SetFilter(expr string) (err error) {
-	var bpf _Ctype_struct_bpf_program
+	var bpf C.struct_bpf_program
 	cexpr := C.CString(expr)
 	defer C.free(unsafe.Pointer(cexpr))
 
@@ -496,10 +496,10 @@ func FindAllDevs() (ifs []Interface, err error) {
 	return
 }
 
-func findAllAddresses(addresses *_Ctype_struct_pcap_addr) (retval []IFAddress, ipv4, ipv6 int) {
+func findAllAddresses(addresses *C.struct_pcap_addr) (retval []IFAddress, ipv4, ipv6 int) {
 	// TODO - make it support more than IPv4 and IPv6?
 	retval = make([]IFAddress, 0, 1)
-	for curaddr := addresses; curaddr != nil; curaddr = (*_Ctype_struct_pcap_addr)(curaddr.next) {
+	for curaddr := addresses; curaddr != nil; curaddr = (*C.struct_pcap_addr)(curaddr.next) {
 		if curaddr.addr == nil {
 			continue
 		}
