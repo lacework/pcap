@@ -18,7 +18,7 @@ void *__memcpy_glibc_2_2_5(void *, const void *, size_t);
 //asm(".symver __memcpy_glibc_2_2_5, memmove@GLIBC_2.2.5");
 void *__wrap_memcpy(void *dest, const void *src, size_t n)
 {
-	return memcpy(dest, src, n);
+	return memmove(dest, src, n);
 }
 #define MAX_PACKETS     10
 #define PCAP_DISPATCH_OVERFLOW 5
