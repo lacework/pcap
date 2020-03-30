@@ -45,12 +45,15 @@ void pcaphandler(u_char *u2, const struct pcap_pkthdr *h, const u_char *bytes)
 	if (u->pkts >= MAX_PACKETS*PCAP_DISPATCH_OVERFLOW) {
 		return;
 	}
-	memmove(u->hdrs + u->pkts*u->hdrsize, h, u->hdrsize);
-
 	int len = h->caplen;
+	if (len == 0) {
+		return;
+	}
 	if (len > MAX_PKT_CAPLEN) {
 		len=MAX_PKT_CAPLEN;
 	}
+	memmove(u->hdrs + u->pkts*u->hdrsize, h, u->hdrsize);
+
 	memmove(u->data + u->pkts*MAX_PKT_CAPLEN, bytes, len);
 	u->pkts++;
 //	if (breakout == 1) {
@@ -320,9 +323,9 @@ func (p *Pcap) NextEx(pktin *Packet) (pkt *Packet, result int32) {
 	p.used = 0
 	p.max = 0
 	max := int32(C.hack_pcap_next_ex(p.cptr, (*C.char)(p.hdrs), (*C.char)(p.data)))
-	p.seq++
-	pkt.Seq = p.seq
 	if max > 0 {
+		p.seq++
+		pkt.Seq = p.seq
 		p.max = int(max)
 		p.getNextPkt(pkt)
 
