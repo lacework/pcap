@@ -315,6 +315,10 @@ func (p *Pcap) Close() {
 	p.seq = 0
 }
 
+func (p *Pcap) IsBufferReleased() bool {
+	return p.hdrs == nil && p.data == nil
+}
+
 func (p *Pcap) NextEx(pktin *Packet) (pkt *Packet, result int32) {
 	if pktin == nil {
 		pkt = new(Packet)
