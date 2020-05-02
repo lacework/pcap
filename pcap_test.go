@@ -25,6 +25,9 @@ func testPcapHandle(t *testing.T, newHandle pcapNewHandleFunc) {
 	if h == nil || err != nil {
 		if h != nil {
 			h.Close()
+			if h.IsBufferReleased() == false {
+				t.Fatalf("testPcapHandle Failed to free pcap buffers after close")
+			}
 		}
 		t.Fatalf("Failed to create/init pcap handle err:%s", err)
 	}
