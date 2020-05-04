@@ -298,7 +298,25 @@ func (p *Pcap) FindRawDataLinks() {
 
 // Pcap closes a handler.
 func (p *Pcap) Close() {
-	C.pcap_close(p.cptr)
+	if p.cptr != nil {
+		C.pcap_close(p.cptr)
+		p.cptr = nil
+	}
+	if p.hdrs != nil {
+		C.free(unsafe.Pointer(p.hdrs))
+		p.hdrs = nil
+	}
+	if p.data != nil {
+		C.free(unsafe.Pointer(p.data))
+		p.data = nil
+	}
+	p.max = 0
+	p.used = 0
+	p.seq = 0
+}
+
+func (p *Pcap) IsBufferReleased() bool {
+	return p.hdrs == nil && p.data == nil
 }
 
 func (p *Pcap) NextEx(pktin *Packet) (pkt *Packet, result int32) {
