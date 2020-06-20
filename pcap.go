@@ -8,6 +8,7 @@ package pcap
 #include <string.h>
 #include <ifaddrs.h>
 
+#ifdef  __GLIBC__
 // See this for glibc 2.14 hack below
 // https://www.win.tue.nl/~aeb/linux/misc/gcc-semibug.html
 
@@ -20,6 +21,7 @@ void *__wrap_memcpy(void *dest, const void *src, size_t n)
 {
     return __memcpy_glibc_2_2_5(dest, src, n);
 }
+#endif
 #define MAX_PACKETS     10
 #define PCAP_DISPATCH_OVERFLOW 5
 #define MAX_PKT_CAPLEN  576
