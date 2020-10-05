@@ -8,15 +8,6 @@ package pcap
 #include <string.h>
 #include <ifaddrs.h>
 
-#ifdef  __GLIBC__
-// We use memmove rather than memcpy here since it is safer
-// for overlapping memory regions.
-
-void *__wrap_memcpy(void *dest, const void *src, size_t n)
-{
-    return memmove(dest, src, n);
-}
-#endif
 #define MAX_PACKETS     10
 #define PCAP_DISPATCH_OVERFLOW 5
 #define MAX_PKT_CAPLEN  576
