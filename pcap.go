@@ -83,14 +83,13 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/lacework/agent/datacollector/dlog"
 	"io/ioutil"
 	"net"
 	"strings"
 	"syscall"
 	"time"
 	"unsafe"
-
-	"github.com/lacework/agent/datacollector/dlog"
 )
 
 type Pcap struct {
